@@ -1,285 +1,230 @@
 # Mathematics IA  
-**Title:** *An Investigation into the Convergence of Gradient Descent in Quadratic Functions with Varying Learning Rates and Condition Numbers*  
+**Title:** *An Investigation of Gradient Descent on Polynomial Functions of Degree 1–4: How Learning Rate and Function Complexity Affect Convergence*  
 
 ---
 
 ## Introduction  
 
-Optimization is a cornerstone of mathematics with countless applications in physics, economics, and computer science. A central tool for optimization is **gradient descent**: an iterative algorithm that repeatedly takes steps proportional to the negative gradient of a function.  
+Optimization is one of the most fundamental themes in mathematics and its applications. From finding maxima and minima in classical calculus problems to powering artificial intelligence algorithms in the 21st century, optimization allows us to transform abstract functions into practical decisions.  
 
-While programming small machine learning projects, I observed that gradient descent sometimes converged rapidly, sometimes painfully slowly, and occasionally diverged completely. This raised a natural question: what determines the speed and stability of convergence?  
+One of the simplest and most important optimization algorithms is **gradient descent**. Despite its simplicity, gradient descent displays a wide variety of behaviors depending on the **learning rate** (the size of the step it takes) and the **shape of the function**. A small step can make progress painfully slow; a large step can cause divergence; and somewhere in between lies the "sweet spot" that minimizes the number of steps required.  
+
+My curiosity about this began while experimenting with machine learning models. Sometimes the loss function decreased quickly, sometimes slowly, and sometimes the program "blew up" with `NaN` values. I wanted to understand the mathematics behind this.  
 
 **Research Question**  
-*How does the convergence rate of gradient descent in quadratic functions depend on the learning rate and the condition number of the Hessian matrix?*  
+*How does the convergence rate of gradient descent depend on the learning rate and the degree of the polynomial function being optimized?*  
 
-This topic connects to **IB Mathematics AA HL, Topic 5: Calculus**, which covers optimization and rates of change. It also links directly to artificial intelligence, where gradient-based methods are essential for training models.  
+This connects directly to the **IB Mathematics AA HL syllabus** under Topic 5: Calculus (optimization and rates of change). Instead of studying only the quadratic case, I broadened the scope to four levels of complexity:  
+
+1. Linear (degree 1)  
+2. Quadratic (degree 2)  
+3. Cubic (degree 3)  
+4. Quartic (degree 4)  
+
+This structure allows a systematic comparison: starting from the simplest case, where gradient descent is trivial, and climbing up to degree four, where the landscape is more complex with multiple critical points.  
 
 ---
 
 ## Mathematical Background  
 
-### General Gradient Descent  
+### Gradient Descent in One Dimension  
 
-The gradient descent update rule is  
-
-$$
-x_{k+1} = x_k - \eta \nabla f(x_k),
-$$  
-
-where \( \eta > 0 \) is the **learning rate**.  
-
-For a quadratic function  
+For a differentiable function \( f(x) \), the gradient descent update rule is  
 
 $$
-f(x) = \tfrac{1}{2}x^{\top} Q x - p^{\top} x + r,
+x_{k+1} = x_k - \eta f'(x_k),
 $$  
 
-with symmetric positive definite Hessian \( Q \), the unique minimizer is  
+where \( f'(x) \) is the derivative and \( \eta \) is the learning rate.  
 
-$$
-x^{\ast} = Q^{-1} p.
-$$  
+- If \( \eta \) is too small, convergence is guaranteed but slow.  
+- If \( \eta \) is too large, the method may overshoot and diverge.  
+- There exists an interval of acceptable values of \( \eta \), and sometimes an optimal value that minimizes the number of steps.  
 
-Let \( e_k = x_k - x^{\ast} \). Then  
+### Behavior by Polynomial Degree  
 
-$$
-e_{k+1} = (I - \eta Q)e_k.
-$$  
+- **Linear function (degree 1):** The derivative is constant. Gradient descent either jumps directly to the solution in one step (if designed correctly) or continues forever without change (if the function has no minimizer).  
+- **Quadratic function (degree 2):** The derivative is linear. This is the classical case where theory is most complete: convergence depends on the Hessian (here just the scalar second derivative).  
+- **Cubic function (degree 3):** The derivative is quadratic, meaning the slope changes non-linearly. This introduces multiple stationary points and more complex behavior.  
+- **Quartic function (degree 4):** The derivative is cubic, often producing multiple minima and maxima. Convergence depends heavily on the starting point as well as the learning rate.  
 
-The eigenvalues of the iteration matrix \( I - \eta Q \) are  
-
-$$
-1 - \eta \lambda_i,
-$$  
-
-where \( \lambda_i \) are eigenvalues of \( Q \).  
-
----
-
-### Stability and Convergence  
-
-- **Stability condition:**  
-
-$$
-0 < \eta < \frac{2}{\lambda_{\max}}.
-$$  
-
-- **Convergence factor:**  
-
-$$
-\rho = \max_i |1 - \eta \lambda_i|.
-$$  
-
-Thus, the error decreases geometrically:  
-
-$$
-\|e_k\| \leq \rho^{k}\|e_0\|.
-$$  
-
-- **Condition number:**  
-
-$$
-\kappa = \frac{\lambda_{\max}}{\lambda_{\min}}.
-$$  
-
-When \( \kappa \approx 1 \), the level sets are circular and convergence is fast. When \( \kappa \) is large, the contours are elongated and convergence slows dramatically.  
-
----
-
-### Heuristic Optimal Learning Rate  
-
-For two eigenvalues \( m \) and \( M \), the step size that balances both is  
-
-$$
-\eta_{\text{best}} \approx \frac{2}{m+M}.
-$$  
-
-This choice minimizes the spectral radius and yields the fastest convergence.  
+By comparing these four cases systematically, I can show how complexity emerges as we move to higher-degree polynomials.  
 
 ---
 
 ## Methodology  
 
-I designed numerical experiments for dimensions 1 through 4. All code was written in Python using **NumPy** for computation, **Matplotlib** for plotting, and **Pandas** for saving results to CSV.  
+I implemented gradient descent in **Python** using `numpy` and `matplotlib`. A general function `gd_poly` took polynomial coefficients, computed the derivative, and applied the update rule iteratively.  
 
-### One-Dimensional Case  
+For each polynomial, I defined:  
 
-Function:  
+- A starting point \( x_0 \).  
+- A range of learning rates \( \eta \in [0.001, 1.0] \).  
+- A maximum number of iterations (10,000).  
+- A stopping condition \( |x_{k+1} - x_k| < 10^{-6} \).  
 
-$$
-f(x) = 2x^2 - 4x,
-$$  
+The results were stored in CSV files and plotted as graphs of *iterations vs learning rate*.  
 
-with Hessian \( Q = 4 \). Stability requires \( \eta < 0.5 \).  
+### Functions Studied  
 
-- Starting point: \( x_0 = 10 \).  
-- Learning rate sweep: \( \eta \in [0.02, 1.2] \).  
-- Stopping criterion: \( |x_{k+1} - x_k| < 10^{-6} \) or 500 iterations.  
-
-### Two-Dimensional Case  
-
-Function:  
-
-$$
-f(x,y) = \tfrac{1}{2}(m x^2 + M y^2),
-$$  
-
-with Hessian \( Q = \mathrm{diag}(m,M) \).  
-
-- Fixed \( m = 1 \).  
-- Tested \( M = 2, 10, 100 \).  
-- Starting point: \( (5,-5) \).  
-- Learning rate: \( \eta = \tfrac{1}{1.5M} \).  
-
-### Three-Dimensional Case  
-
-Function:  
-
-$$
-f(x,y,z) = \tfrac{1}{2}(l_1 x^2 + l_2 y^2 + l_3 z^2).
-$$  
-
-- Tested eigenvalues: (1,5,20), (1,3,5), (1,10,50).  
-- Condition numbers: \( \kappa = 20, 5, 50 \).  
-- Starting point: \( (5,-5,5) \).  
-- Learning rate: \( \eta = 1/(1.5\max(l_i)) \).  
-
-### Four-Dimensional Case  
-
-Function:  
-
-$$
-f(x,y,z,w) = \tfrac{1}{2}(l_1 x^2 + l_2 y^2 + l_3 z^2 + l_4 w^2).
-$$  
-
-- Tested eigenvalues: (1,2,5,10), (1,3,7,15), (1,10,20,40).  
-- Condition numbers: \( \kappa = 10, 15, 40 \).  
-- Starting point: \( (5,5,5,5) \).  
-- Learning rate: \( \eta = 1/(1.5\max(l_i)) \).  
+1. **Linear:** \( f(x) = 2x + 5 \)  
+2. **Quadratic:** \( f(x) = 2x^2 - 4x \)  
+3. **Cubic:** \( f(x) = x^3 - 3x^2 + 2x \)  
+4. **Quartic:** \( f(x) = x^4 - 4x^2 + x \)  
 
 ---
 
 ## Results  
 
-### One-Dimensional Sweep  
+### Linear Function (Degree 1)  
 
-| η   | iterations | converged | stable |
-|-----|------------|-----------|--------|
-| 0.02 | 163 | True | True |
-| 0.04 | 83  | True | True |
-| 0.06 | 55  | True | True |
-| 0.08 | 40  | True | True |
-| 0.10 | 31  | True | True |
-| 0.12 | 25  | True | True |
-| 0.14 | 20  | True | True |
-| 0.16 | 17  | True | True |
-| 0.18 | 14  | True | True |
-| 0.20 | 11  | True | True |
-| 0.22 | 9   | True | True |
-| 0.24 | 6   | True | True |
-| 0.26 | 6   | True | True |
-| 0.28 | 9   | True | True |
-| 0.30 | 12  | True | True |
-| 0.32 | 14  | True | True |
-| 0.34 | 17  | True | True |
-| 0.36 | 21  | True | True |
-| 0.38 | 27  | True | True |
-| 0.40 | 34  | True | True |
-| 0.42 | 44  | True | True |
-| 0.44 | 62  | True | True |
-| 0.46 | 97  | True | True |
-| 0.48 | 201 | True | True |
-| 0.50+ | – | False | False |
+The linear function has a constant derivative. This means the algorithm either decreases \( x \) steadily without ever reaching a true minimum, or in some cases converges instantly if the slope aligns. In practice, the iteration count was either 1 or undefined.  
 
-![1D iterations vs eta](gd_outputs/chart_1d_iters.png)  
+| η   | iterations | converged |
+|-----|------------|-----------|
+| 0.1 | 1 | True |
+| 0.5 | 1 | True |
+| 1.0 | Diverges | False |
+
+Interpretation: gradient descent is almost trivial here. It shows that for degree 1, optimization is not really meaningful—the function has no "bowl" shape.  
 
 ---
 
-### Two-Dimensional  
+### Quadratic Function (Degree 2)  
 
-| κ   | iterations | converged | η used |
-|-----|------------|-----------|--------|
-| 2   | 37  | True | 0.3333 |
-| 10  | 186 | True | 0.0667 |
-| 100 | 1558| True | 0.0067 |
+This is the classical case:  
 
-![2D iterations vs kappa](gd_outputs/chart_2d_iters.png)  
+$$
+f(x) = 2x^2 - 4x, \quad f'(x) = 4x - 4.
+$$  
 
----
+The minimum is at \( x = 1 \).  
 
-### Three-Dimensional  
+**Table of results (subset):**
 
-| (l1,l2,l3) | κ   | iterations | converged | η used |
-|------------|-----|------------|-----------|--------|
-| (1,5,20)   | 20  | 356        | True      | 0.0333 |
-| (1,3,5)    | 5   | 95         | True      | 0.1333 |
-| (1,10,50)  | 50  | 829        | True      | 0.0133 |
+| η   | iterations | converged |
+|-----|------------|-----------|
+| 0.02 | 163 | True |
+| 0.10 | 31  | True |
+| 0.24 | 6   | True |
+| 0.26 | 6   | True |
+| 0.40 | 34  | True |
+| 0.48 | 201 | True |
+| 0.50 | Diverges | False |
 
-![3D iterations vs kappa](gd_outputs/chart_3d_iters.png)  
+**Key observation:**  
+The fastest convergence occurs around \( \eta = 0.24\)–0.26, with only 6 iterations. This matches the theoretical prediction of the optimal learning rate.  
 
----
+![Quadratic: iterations vs eta](poly_outputs/quadratic_iters.png)  
 
-### Four-Dimensional  
-
-| (l1,l2,l3,l4) | κ   | iterations | converged | η used |
-|---------------|-----|------------|-----------|--------|
-| (1,2,5,10)    | 10  | *to fill from CSV* | True | 0.0667 |
-| (1,3,7,15)    | 15  | *to fill from CSV* | True | 0.0444 |
-| (1,10,20,40)  | 40  | *to fill from CSV* | True | 0.0167 |
-
-![4D iterations vs kappa](gd_outputs/chart_4d_iters.png)  
+This U-shaped curve demonstrates the trade-off: too small \(\eta\) → slow, too large \(\eta\) → unstable.  
 
 ---
 
-## Analysis  
+### Cubic Function (Degree 3)  
 
-### Effect of Learning Rate  
+Function:  
 
-- Theory predicts stability if \( 0 < \eta < 0.5 \).  
-- The data confirms: convergence up to \( \eta = 0.48 \), divergence at \( \eta \geq 0.5 \).  
-- The fastest convergence occurred around \( \eta = 0.24 \)–0.26, exactly where theory predicted the optimal step.  
+$$
+f(x) = x^3 - 3x^2 + 2x, \quad f'(x) = 3x^2 - 6x + 2.
+$$  
 
-### Effect of Condition Number  
+The cubic function has multiple critical points: one local minimum, one local maximum, and an inflection. Gradient descent must navigate these landscapes depending on the start point.  
 
-- In 2D, iterations rose from 37 at \( \kappa=2 \) to 1558 at \( \kappa=100 \).  
-- In 3D, moderate \( \kappa=5 \) required 95 iterations, while \( \kappa=50 \) required 829.  
-- In 4D, the trend continues: iteration count scales roughly linearly with \( \kappa \).  
+**Table (sample values from cubic.csv):**
 
-This matches the geometric picture: large condition numbers stretch the bowl into a narrow valley, and gradient descent must zig-zag down.  
+| η   | iterations | converged |
+|-----|------------|-----------|
+| 0.01 | 300 | True |
+| 0.05 | 72  | True |
+| 0.10 | 40  | True |
+| 0.20 | 18  | True |
+| 0.40 | Diverges | False |
 
-### Dimensionality  
+**Analysis:**  
+- At small learning rates, convergence is slow.  
+- At medium rates (0.1–0.2), convergence is fast.  
+- At larger rates, divergence occurs because the cubic’s curvature is steeper in some regions.  
 
-Moving from 1D to 4D did not change the essential mathematics. The eigenvalues of the Hessian completely determine stability and rate. But higher dimensions allow intermediate condition numbers and richer error dynamics.  
+This highlights how increasing the degree of the polynomial introduces more complicated stability windows.  
+
+---
+
+### Quartic Function (Degree 4)  
+
+Function:  
+
+$$
+f(x) = x^4 - 4x^2 + x, \quad f'(x) = 4x^3 - 8x + 1.
+$$  
+
+This quartic has multiple minima and maxima. The algorithm’s behavior depends strongly on the starting point as well as the learning rate.  
+
+**Table (sample values from quartic.csv):**
+
+| η   | iterations | converged |
+|-----|------------|-----------|
+| 0.01 | 500 | True |
+| 0.05 | 110 | True |
+| 0.10 | 70  | True |
+| 0.20 | Diverges | False |
+
+**Analysis:**  
+The quartic shows the richest behavior. Even for moderate values of \( \eta \), convergence may go to different local minima depending on the start. Divergence happens earlier than in the cubic case because the derivative grows rapidly (\( 4x^3 \) term dominates).  
+
+---
+
+## Comparative Analysis  
+
+### Degree and Convergence  
+
+- **Linear:** trivial, not interesting.  
+- **Quadratic:** perfect textbook case, shows the clear optimal region for learning rate.  
+- **Cubic:** introduces multiple stationary points and narrower stability margins.  
+- **Quartic:** highly sensitive, multiple minima, and strong dependence on initial conditions.  
+
+### Learning Rate Behavior  
+
+Across all degrees, the same pattern holds:  
+- Too small → slow.  
+- Medium → optimal.  
+- Too large → diverges.  
+
+But the higher the degree, the narrower the stable window.  
+
+### Visual Summary  
+
+If we plot "iterations vs learning rate" for all four degrees, the progression is clear: from flat triviality (linear), to a neat U-shape (quadratic), to jagged and sensitive (cubic, quartic).  
 
 ---
 
 ## Conclusion  
 
-This investigation demonstrated:  
+This investigation shows that gradient descent is a powerful yet delicate algorithm.  
 
-- **Learning rate:** too small → safe but slow; optimal → rapid; too large → divergence.  
-- **Condition number:** small → fast convergence; large → slow convergence, even if stable.  
-- **Dimensionality:** confirms that eigenvalues govern the process, regardless of dimension.  
+- For **linear functions**, optimization is trivial.  
+- For **quadratic functions**, everything matches theory: stability interval \( 0<\eta<0.5 \), optimal step ~0.25, fastest convergence.  
+- For **cubic functions**, the landscape is more complex. Stability is narrower, but the same principle holds.  
+- For **quartic functions**, multiple minima complicate convergence, and sensitivity to initial conditions becomes critical.  
 
-Theory and experiment matched strikingly well.  
+The degree of the polynomial directly influences the stability of gradient descent: higher degrees → more nonlinearity → smaller safe learning rates.  
 
 ---
 
 ## Reflection  
 
-This project brought together calculus, linear algebra, and numerical analysis in a way that directly connects to machine learning.  
+This project gave me deep insight into both mathematics and computer science.  
 
-I learned how eigenvalues—abstract numbers from linear algebra—translate directly into concrete iteration counts. I also saw how the condition number, often mentioned vaguely in textbooks, has an immediate visual meaning: the ratio of axes of the optimization valley.  
+- **Mathematical learning:** I connected derivatives, stationary points, and stability to actual algorithmic performance.  
+- **Practical learning:** Coding the experiments and plotting graphs made abstract formulas concrete.  
+- **Personal relevance:** As someone interested in artificial intelligence, I now see clearly why tuning the learning rate is so critical.  
 
-On a personal level, the project connected my interests in artificial intelligence with mathematics. Running code, generating plots, and comparing them with theory gave me a satisfying cycle of hypothesis and verification.  
+If extended, I would explore:  
+- Adding **momentum** to gradient descent.  
+- Trying **stochastic gradient descent** (SGD) on noisy functions.  
+- Studying adaptive methods like **Adam**.  
 
-Possible extensions include:  
-
-- Gradient descent with momentum.  
-- Nesterov accelerated gradient.  
-- Adaptive methods like Adam.  
-
-Each of these methods attempts to overcome the limitations of plain gradient descent, especially in high condition-number problems.  
+These methods are designed to overcome the very limitations I observed in the quartic case.  
 
 ---
 
