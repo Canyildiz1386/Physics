@@ -56,9 +56,11 @@ $$
 
 so the error decays approximately as  
 
+
 $$
-\|x_k - x^*\| \leq \rho^k \|x_0 - x^*\|.
-$$  
+\|x_k - x^{\ast}\| \leq \rho^{k} \, \|x_0 - x^{\ast}\|
+$$
+
 
 The **condition number** is  
 
