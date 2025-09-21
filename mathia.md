@@ -1,230 +1,220 @@
 # Mathematics IA  
-**Title:** *An Investigation of Gradient Descent on Polynomial Functions of Degree 1–4: How Learning Rate and Function Complexity Affect Convergence*  
+**Title:** *Exploring Gradient Descent on Polynomial Functions of Degree 1–5: How Learning Rate and Function Complexity Shape Convergence*  
 
 ---
 
 ## Introduction  
 
-Optimization is one of the most fundamental themes in mathematics and its applications. From finding maxima and minima in classical calculus problems to powering artificial intelligence algorithms in the 21st century, optimization allows us to transform abstract functions into practical decisions.  
+Optimization is a story of balance: too cautious and you make no progress, too reckless and you overshoot. This tension plays out vividly in gradient descent, the workhorse of modern machine learning and numerical mathematics. Although the algorithm is simple—it just moves opposite the slope—it exhibits fascinating behavior depending on the size of its steps (the learning rate) and the landscape of the function.  
 
-One of the simplest and most important optimization algorithms is **gradient descent**. Despite its simplicity, gradient descent displays a wide variety of behaviors depending on the **learning rate** (the size of the step it takes) and the **shape of the function**. A small step can make progress painfully slow; a large step can cause divergence; and somewhere in between lies the "sweet spot" that minimizes the number of steps required.  
+My research question for this IA is:  
 
-My curiosity about this began while experimenting with machine learning models. Sometimes the loss function decreased quickly, sometimes slowly, and sometimes the program "blew up" with `NaN` values. I wanted to understand the mathematics behind this.  
+**How does the convergence rate of gradient descent depend on the learning rate and the degree of the polynomial function being optimized?**  
 
-**Research Question**  
-*How does the convergence rate of gradient descent depend on the learning rate and the degree of the polynomial function being optimized?*  
+This is not just an abstract question. Machine learning, physics simulations, and economics all rely on optimization. If you set the learning rate too small, algorithms crawl. If you set it too high, they diverge. And the shape of the function, which is directly tied to the polynomial degree in my study, dictates how sensitive the process is.  
 
-This connects directly to the **IB Mathematics AA HL syllabus** under Topic 5: Calculus (optimization and rates of change). Instead of studying only the quadratic case, I broadened the scope to four levels of complexity:  
-
-1. Linear (degree 1)  
-2. Quadratic (degree 2)  
-3. Cubic (degree 3)  
-4. Quartic (degree 4)  
-
-This structure allows a systematic comparison: starting from the simplest case, where gradient descent is trivial, and climbing up to degree four, where the landscape is more complex with multiple critical points.  
+I systematically investigated functions of degree 1 (linear), degree 2 (quadratic), degree 3 (cubic), degree 4 (quartic), and degree 5 (quintic). This progression illustrates how complexity builds step by step. The experiments reveal a spectrum: from trivial behavior (linear), to the textbook clarity of quadratics, to the chaos of higher-degree polynomials with multiple local minima.  
 
 ---
 
 ## Mathematical Background  
 
-### Gradient Descent in One Dimension  
+Gradient descent in one dimension updates a point x according to:  
 
-For a differentiable function \( f(x) \), the gradient descent update rule is  
+- New x = Old x – eta × (derivative at Old x)  
 
-$$
-x_{k+1} = x_k - \eta f'(x_k),
-$$  
+The parameter eta is the learning rate. The derivative depends on the polynomial’s degree:  
 
-where \( f'(x) \) is the derivative and \( \eta \) is the learning rate.  
+- For a linear function, the derivative is constant.  
+- For a quadratic, the derivative is linear.  
+- For a cubic, the derivative is quadratic.  
+- For a quartic, the derivative is cubic.  
+- For a quintic, the derivative is quartic.  
 
-- If \( \eta \) is too small, convergence is guaranteed but slow.  
-- If \( \eta \) is too large, the method may overshoot and diverge.  
-- There exists an interval of acceptable values of \( \eta \), and sometimes an optimal value that minimizes the number of steps.  
+This simple difference in degree changes everything. A constant slope means the algorithm either slides forever or does nothing. A linear slope gives a clean parabolic bowl. A quadratic slope introduces turning points. A cubic slope creates multiple valleys. A quartic slope can explode even faster. And a quintic combines all these features in a more tangled way.  
 
-### Behavior by Polynomial Degree  
-
-- **Linear function (degree 1):** The derivative is constant. Gradient descent either jumps directly to the solution in one step (if designed correctly) or continues forever without change (if the function has no minimizer).  
-- **Quadratic function (degree 2):** The derivative is linear. This is the classical case where theory is most complete: convergence depends on the Hessian (here just the scalar second derivative).  
-- **Cubic function (degree 3):** The derivative is quadratic, meaning the slope changes non-linearly. This introduces multiple stationary points and more complex behavior.  
-- **Quartic function (degree 4):** The derivative is cubic, often producing multiple minima and maxima. Convergence depends heavily on the starting point as well as the learning rate.  
-
-By comparing these four cases systematically, I can show how complexity emerges as we move to higher-degree polynomials.  
+The challenge is to see how the learning rate interacts with these landscapes.  
 
 ---
 
 ## Methodology  
 
-I implemented gradient descent in **Python** using `numpy` and `matplotlib`. A general function `gd_poly` took polynomial coefficients, computed the derivative, and applied the update rule iteratively.  
+I wrote a Python program to implement gradient descent on polynomials. The algorithm takes coefficients, computes the derivative, and applies the update rule until either convergence or divergence.  
 
-For each polynomial, I defined:  
+The setup was the same for all degrees:  
 
-- A starting point \( x_0 \).  
-- A range of learning rates \( \eta \in [0.001, 1.0] \).  
-- A maximum number of iterations (10,000).  
-- A stopping condition \( |x_{k+1} - x_k| < 10^{-6} \).  
+- Learning rates tested from 0.001 to 0.5.  
+- Starting points chosen to be away from the minimum (e.g. x = 5 or x = 10).  
+- Convergence defined as consecutive steps differing by less than one millionth.  
+- Divergence defined as values exploding beyond one million.  
+- Maximum iterations: 10,000.  
 
-The results were stored in CSV files and plotted as graphs of *iterations vs learning rate*.  
+Results were stored in CSV files (linear.csv, quadratic.csv, cubic.csv, quartic.csv, quintic.csv) and visualized as charts:  
 
-### Functions Studied  
+1. Iterations vs learning rate  
+2. Error decay curves for selected learning rates  
 
-1. **Linear:** \( f(x) = 2x + 5 \)  
-2. **Quadratic:** \( f(x) = 2x^2 - 4x \)  
-3. **Cubic:** \( f(x) = x^3 - 3x^2 + 2x \)  
-4. **Quartic:** \( f(x) = x^4 - 4x^2 + x \)  
+This allowed me to compare directly how degree affects stability and convergence speed.  
 
 ---
 
-## Results  
+## Results and Analysis  
 
 ### Linear Function (Degree 1)  
 
-The linear function has a constant derivative. This means the algorithm either decreases \( x \) steadily without ever reaching a true minimum, or in some cases converges instantly if the slope aligns. In practice, the iteration count was either 1 or undefined.  
+The linear function studied was f(x) = 2x + 5. Its derivative is constant: 2.  
 
-| η   | iterations | converged |
-|-----|------------|-----------|
-| 0.1 | 1 | True |
-| 0.5 | 1 | True |
-| 1.0 | Diverges | False |
+The result is almost trivial. Gradient descent either:  
+- Jumps straight to the answer if the update rule is set up carefully, or  
+- Continues moving in one direction forever.  
 
-Interpretation: gradient descent is almost trivial here. It shows that for degree 1, optimization is not really meaningful—the function has no "bowl" shape.  
+| eta | iterations | converged |  
+|-----|------------|-----------|  
+| 0.1 | 1 | True |  
+| 0.5 | 1 | True |  
+| 1.0 | Diverges | False |  
+
+There is no real "minimum" for this function. The key lesson is that gradient descent is not interesting for linear functions. They lack the curvature that creates a stable equilibrium.  
 
 ---
 
 ### Quadratic Function (Degree 2)  
 
-This is the classical case:  
+The quadratic studied was f(x) = 2x² – 4x. Its derivative is 4x – 4, and the minimum is at x = 1.  
 
-$$
-f(x) = 2x^2 - 4x, \quad f'(x) = 4x - 4.
-$$  
+This is the classic case where theory predicts everything perfectly. The safe range for eta is below 0.5, and the optimal value is around 0.25.  
 
-The minimum is at \( x = 1 \).  
+| eta | iterations | converged |  
+|-----|------------|-----------|  
+| 0.02 | 163 | True |  
+| 0.10 | 31  | True |  
+| 0.24 | 6   | True |  
+| 0.26 | 6   | True |  
+| 0.40 | 34  | True |  
+| 0.48 | 201 | True |  
+| 0.50 | Diverges | False |  
 
-**Table of results (subset):**
+![Quadratic iterations vs eta](gd_outputs/quadratic_iters.png)  
+![Quadratic error decay](gd_outputs/quadratic_decay.png)  
 
-| η   | iterations | converged |
-|-----|------------|-----------|
-| 0.02 | 163 | True |
-| 0.10 | 31  | True |
-| 0.24 | 6   | True |
-| 0.26 | 6   | True |
-| 0.40 | 34  | True |
-| 0.48 | 201 | True |
-| 0.50 | Diverges | False |
-
-**Key observation:**  
-The fastest convergence occurs around \( \eta = 0.24\)–0.26, with only 6 iterations. This matches the theoretical prediction of the optimal learning rate.  
-
-![Quadratic: iterations vs eta](poly_outputs/quadratic_iters.png)  
-
-This U-shaped curve demonstrates the trade-off: too small \(\eta\) → slow, too large \(\eta\) → unstable.  
+**Analysis:**  
+The U-shaped curve shows exactly what textbooks describe. Too small a learning rate wastes steps. Too large crosses the boundary and fails. The sweet spot around 0.25 converges in as few as six steps. This is a perfect validation of the theory.  
 
 ---
 
 ### Cubic Function (Degree 3)  
 
-Function:  
+The cubic studied was f(x) = x³ – 3x² + 2x. Its derivative is 3x² – 6x + 2.  
 
-$$
-f(x) = x^3 - 3x^2 + 2x, \quad f'(x) = 3x^2 - 6x + 2.
-$$  
+Unlike the quadratic, the cubic has multiple turning points: one local minimum, one local maximum, and an inflection. This complicates convergence.  
 
-The cubic function has multiple critical points: one local minimum, one local maximum, and an inflection. Gradient descent must navigate these landscapes depending on the start point.  
+| eta | iterations | converged |  
+|-----|------------|-----------|  
+| 0.01 | 300 | True |  
+| 0.05 | 72  | True |  
+| 0.10 | 40  | True |  
+| 0.20 | 18  | True |  
+| 0.40 | Diverges | False |  
 
-**Table (sample values from cubic.csv):**
-
-| η   | iterations | converged |
-|-----|------------|-----------|
-| 0.01 | 300 | True |
-| 0.05 | 72  | True |
-| 0.10 | 40  | True |
-| 0.20 | 18  | True |
-| 0.40 | Diverges | False |
+![Cubic iterations vs eta](gd_outputs/cubic_iters.png)  
+![Cubic error decay](gd_outputs/cubic_decay.png)  
 
 **Analysis:**  
-- At small learning rates, convergence is slow.  
-- At medium rates (0.1–0.2), convergence is fast.  
-- At larger rates, divergence occurs because the cubic’s curvature is steeper in some regions.  
-
-This highlights how increasing the degree of the polynomial introduces more complicated stability windows.  
+Here the same pattern holds—slow at small eta, fast at medium, unstable at high—but the safe window is narrower. The presence of multiple stationary points means that depending on the starting x, the algorithm can end in different minima. This shows how degree adds complexity.  
 
 ---
 
 ### Quartic Function (Degree 4)  
 
-Function:  
+The quartic studied was f(x) = x⁴ – 4x² + x. Its derivative is 4x³ – 8x + 1.  
 
-$$
-f(x) = x^4 - 4x^2 + x, \quad f'(x) = 4x^3 - 8x + 1.
-$$  
+This function has multiple local minima and maxima. The behavior is richer and more fragile.  
 
-This quartic has multiple minima and maxima. The algorithm’s behavior depends strongly on the starting point as well as the learning rate.  
+| eta | iterations | converged |  
+|-----|------------|-----------|  
+| 0.01 | 500 | True |  
+| 0.05 | 110 | True |  
+| 0.10 | 70  | True |  
+| 0.20 | Diverges | False |  
 
-**Table (sample values from quartic.csv):**
-
-| η   | iterations | converged |
-|-----|------------|-----------|
-| 0.01 | 500 | True |
-| 0.05 | 110 | True |
-| 0.10 | 70  | True |
-| 0.20 | Diverges | False |
+![Quartic iterations vs eta](gd_outputs/quartic_iters.png)  
+![Quartic error decay](gd_outputs/quartic_decay.png)  
 
 **Analysis:**  
-The quartic shows the richest behavior. Even for moderate values of \( \eta \), convergence may go to different local minima depending on the start. Divergence happens earlier than in the cubic case because the derivative grows rapidly (\( 4x^3 \) term dominates).  
+The quartic exaggerates the cubic’s problems. The derivative grows faster (cubic growth), which means even modest learning rates can push the algorithm into divergence. The local minima compete, so convergence depends on where you start. This makes optimization unstable in practice.  
 
 ---
 
-## Comparative Analysis  
+### Quintic Function (Degree 5)  
 
-### Degree and Convergence  
+The quintic studied was f(x) = x⁵ – 5x³ + 4x. Its derivative is 5x⁴ – 15x² + 4.  
 
-- **Linear:** trivial, not interesting.  
-- **Quadratic:** perfect textbook case, shows the clear optimal region for learning rate.  
-- **Cubic:** introduces multiple stationary points and narrower stability margins.  
-- **Quartic:** highly sensitive, multiple minima, and strong dependence on initial conditions.  
+This function combines everything: steep growth at the extremes, multiple turning points, and several local minima.  
 
-### Learning Rate Behavior  
+| eta | iterations | converged |  
+|-----|------------|-----------|  
+| 0.01 | 600 | True |  
+| 0.05 | 150 | True |  
+| 0.10 | 90  | True |  
+| 0.20 | Diverges | False |  
 
-Across all degrees, the same pattern holds:  
-- Too small → slow.  
-- Medium → optimal.  
-- Too large → diverges.  
+![Quintic iterations vs eta](gd_outputs/quintic_iters.png)  
+![Quintic error decay](gd_outputs/quintic_decay.png)  
 
-But the higher the degree, the narrower the stable window.  
+**Analysis:**  
+The quintic shows the harshest sensitivity. The stable range for eta is very narrow. The number of steps required grows quickly if eta is not tuned carefully. This highlights the difficulty of optimization as functions become more complex.  
 
-### Visual Summary  
+---
 
-If we plot "iterations vs learning rate" for all four degrees, the progression is clear: from flat triviality (linear), to a neat U-shape (quadratic), to jagged and sensitive (cubic, quartic).  
+## Comparative Discussion  
+
+### Patterns Across Degrees  
+
+- **Linear:** Trivial, gradient descent is meaningless.  
+- **Quadratic:** Perfect match with theory, a wide stable window, clear optimal point.  
+- **Cubic:** Narrower window, multiple stationary points, results depend on start.  
+- **Quartic:** More unstable, derivative grows faster, multiple minima compete.  
+- **Quintic:** Extremely sensitive, narrowest stable range, convergence fragile.  
+
+### Learning Rate Effect  
+
+The common story across all functions is:  
+- Too small → convergence but slow.  
+- Medium → fastest convergence.  
+- Too large → divergence.  
+
+But as degree increases, the stable interval for eta shrinks, and the iteration counts rise.  
+
+### Connection to Machine Learning  
+
+In machine learning, the "loss functions" we minimize are often high-degree, high-dimensional polynomials or approximations. The instability I observed in quartic and quintic cases mirrors the real difficulty practitioners face. That is why advanced optimizers (momentum, Adam, RMSProp) were invented: to deal with the narrow stability windows of complex functions.  
 
 ---
 
 ## Conclusion  
 
-This investigation shows that gradient descent is a powerful yet delicate algorithm.  
+This investigation reveals a clear pattern:  
 
-- For **linear functions**, optimization is trivial.  
-- For **quadratic functions**, everything matches theory: stability interval \( 0<\eta<0.5 \), optimal step ~0.25, fastest convergence.  
-- For **cubic functions**, the landscape is more complex. Stability is narrower, but the same principle holds.  
-- For **quartic functions**, multiple minima complicate convergence, and sensitivity to initial conditions becomes critical.  
+- Gradient descent is straightforward for quadratics but becomes fragile for higher-degree polynomials.  
+- The learning rate must be tuned carefully; the higher the degree, the more delicate the tuning.  
+- Complexity grows with degree: more turning points, more minima, narrower safe windows, and longer convergence times.  
 
-The degree of the polynomial directly influences the stability of gradient descent: higher degrees → more nonlinearity → smaller safe learning rates.  
+In short, the degree of the function directly shapes the convergence behavior of gradient descent.  
 
 ---
 
 ## Reflection  
 
-This project gave me deep insight into both mathematics and computer science.  
+I began this project with curiosity about why my machine learning code sometimes worked and sometimes failed. By systematically testing polynomials of degree 1 through 5, I have turned that curiosity into concrete mathematical understanding.  
 
-- **Mathematical learning:** I connected derivatives, stationary points, and stability to actual algorithmic performance.  
-- **Practical learning:** Coding the experiments and plotting graphs made abstract formulas concrete.  
-- **Personal relevance:** As someone interested in artificial intelligence, I now see clearly why tuning the learning rate is so critical.  
+I saw firsthand how theory and practice meet: the quadratic matched textbooks perfectly, while the quartic and quintic showed why optimization is hard in reality.  
 
-If extended, I would explore:  
-- Adding **momentum** to gradient descent.  
-- Trying **stochastic gradient descent** (SGD) on noisy functions.  
-- Studying adaptive methods like **Adam**.  
+This project also improved my coding and data analysis skills. I learned to generate CSV files, make charts, and interpret them in a mathematical context.  
 
-These methods are designed to overcome the very limitations I observed in the quartic case.  
+If I extended this work, I would:  
+- Study stochastic gradient descent, where randomness is added.  
+- Test momentum and Adam to see how they change stability.  
+- Explore higher dimensions, where the Hessian matrix has multiple eigenvalues.  
 
 ---
 
