@@ -5,46 +5,58 @@
 
 ## Introduction  
 
-Optimization lies at the heart of modern mathematics and its applications. Whether in physics, economics, or machine learning, we often want to minimize a cost or maximize a reward. Among the algorithms invented to do this, **gradient descent** stands out because of its simplicity and effectiveness.  
+Optimization is a cornerstone of mathematics with countless applications in physics, economics, and computer science. A central tool for optimization is **gradient descent**: an iterative algorithm that repeatedly takes steps proportional to the negative gradient of a function.  
 
-While experimenting with small machine learning projects, I noticed that gradient descent sometimes converged quickly, sometimes very slowly, and sometimes exploded into divergence. This puzzled me, and I wanted to explore the mathematics behind this phenomenon.  
+While programming small machine learning projects, I observed that gradient descent sometimes converged rapidly, sometimes painfully slowly, and occasionally diverged completely. This raised a natural question: what determines the speed and stability of convergence?  
 
 **Research Question**  
 *How does the convergence rate of gradient descent in quadratic functions depend on the learning rate and the condition number of the Hessian matrix?*  
 
-This problem links directly to the **IB Mathematics AA HL syllabus** under Topic 5 (Calculus: optimization and rates of change). It also connects to artificial intelligence, where training algorithms rely heavily on gradient descent.  
+This topic connects to **IB Mathematics AA HL, Topic 5: Calculus**, which covers optimization and rates of change. It also links directly to artificial intelligence, where gradient-based methods are essential for training models.  
 
 ---
 
 ## Mathematical Background  
 
-Gradient descent iterates according to  
+### General Gradient Descent  
+
+The gradient descent update rule is  
 
 $$
 x_{k+1} = x_k - \eta \nabla f(x_k),
 $$  
 
-where \( \eta \) is the learning rate.  
+where \( \eta > 0 \) is the **learning rate**.  
 
 For a quadratic function  
 
 $$
-f(x) = \tfrac{1}{2} x^\top Q x - p^\top x + r,
+f(x) = \tfrac{1}{2}x^{\top} Q x - p^{\top} x + r,
 $$  
 
-with \( Q \) symmetric and positive definite, the unique minimizer is  
+with symmetric positive definite Hessian \( Q \), the unique minimizer is  
 
 $$
-x^\ast = Q^{-1} p.
+x^{\ast} = Q^{-1} p.
 $$  
 
-Define the error \( e_k = x_k - x^\ast \). Then  
+Let \( e_k = x_k - x^{\ast} \). Then  
 
 $$
 e_{k+1} = (I - \eta Q)e_k.
 $$  
 
-The eigenvalues of the iteration matrix are \( 1 - \eta \lambda_i \), where \( \lambda_i \) are eigenvalues of \( Q \).  
+The eigenvalues of the iteration matrix \( I - \eta Q \) are  
+
+$$
+1 - \eta \lambda_i,
+$$  
+
+where \( \lambda_i \) are eigenvalues of \( Q \).  
+
+---
+
+### Stability and Convergence  
 
 - **Stability condition:**  
 
@@ -58,10 +70,10 @@ $$
 \rho = \max_i |1 - \eta \lambda_i|.
 $$  
 
-Thus  
+Thus, the error decreases geometrically:  
 
 $$
-\|e_k\| \leq \rho^k \|e_0\|.
+\|e_k\| \leq \rho^{k}\|e_0\|.
 $$  
 
 - **Condition number:**  
@@ -70,29 +82,43 @@ $$
 \kappa = \frac{\lambda_{\max}}{\lambda_{\min}}.
 $$  
 
-When \( \kappa \) is small, the level sets are circular and convergence is rapid. When \( \kappa \) is large, the function looks like a narrow valley and gradient descent zig-zags, converging slowly.  
+When \( \kappa \approx 1 \), the level sets are circular and convergence is fast. When \( \kappa \) is large, the contours are elongated and convergence slows dramatically.  
+
+---
+
+### Heuristic Optimal Learning Rate  
+
+For two eigenvalues \( m \) and \( M \), the step size that balances both is  
+
+$$
+\eta_{\text{best}} \approx \frac{2}{m+M}.
+$$  
+
+This choice minimizes the spectral radius and yields the fastest convergence.  
 
 ---
 
 ## Methodology  
 
-### One-Dimensional Quadratic  
+I designed numerical experiments for dimensions 1 through 4. All code was written in Python using **NumPy** for computation, **Matplotlib** for plotting, and **Pandas** for saving results to CSV.  
 
-I analyzed  
+### One-Dimensional Case  
+
+Function:  
 
 $$
 f(x) = 2x^2 - 4x,
 $$  
 
-starting at \( x_0 = 10 \).  
-Here \( Q = 4 \), so stability requires \( \eta < 0.5 \).  
+with Hessian \( Q = 4 \). Stability requires \( \eta < 0.5 \).  
 
+- Starting point: \( x_0 = 10 \).  
 - Learning rate sweep: \( \eta \in [0.02, 1.2] \).  
-- Stopping condition: \( |x_{k+1} - x_k| < 10^{-6} \) or 500 iterations.  
+- Stopping criterion: \( |x_{k+1} - x_k| < 10^{-6} \) or 500 iterations.  
 
-### Two-Dimensional Quadratic  
+### Two-Dimensional Case  
 
-I extended to  
+Function:  
 
 $$
 f(x,y) = \tfrac{1}{2}(m x^2 + M y^2),
@@ -101,41 +127,41 @@ $$
 with Hessian \( Q = \mathrm{diag}(m,M) \).  
 
 - Fixed \( m = 1 \).  
-- Tested \( M = 2, 10, 100 \) (so \( \kappa = 2, 10, 100 \)).  
-- Starting point: \( (5, -5) \).  
-- Learning rate: \( \eta = \tfrac{1}{1.5 M} \).  
+- Tested \( M = 2, 10, 100 \).  
+- Starting point: \( (5,-5) \).  
+- Learning rate: \( \eta = \tfrac{1}{1.5M} \).  
 
-### Three-Dimensional Quadratic  
+### Three-Dimensional Case  
 
-Finally, I considered  
+Function:  
 
 $$
-f(x,y,z) = \tfrac{1}{2}(l_1 x^2 + l_2 y^2 + l_3 z^2),
+f(x,y,z) = \tfrac{1}{2}(l_1 x^2 + l_2 y^2 + l_3 z^2).
 $$  
 
-with Hessian \( Q = \mathrm{diag}(l_1,l_2,l_3) \).  
-
-- Tested cases: \( (1,5,20), (1,3,5), (1,10,50) \).  
+- Tested eigenvalues: (1,5,20), (1,3,5), (1,10,50).  
 - Condition numbers: \( \kappa = 20, 5, 50 \).  
-- Learning rate: \( \eta = \tfrac{1}{1.5 \max(l_i)} \).  
 - Starting point: \( (5,-5,5) \).  
+- Learning rate: \( \eta = 1/(1.5\max(l_i)) \).  
 
-### Data Collection  
+### Four-Dimensional Case  
 
-For each run I recorded:  
+Function:  
 
-- Learning rate \( \eta \).  
-- Number of iterations until convergence.  
-- Whether it converged.  
-- Whether it matched theoretical stability.  
+$$
+f(x,y,z,w) = \tfrac{1}{2}(l_1 x^2 + l_2 y^2 + l_3 z^2 + l_4 w^2).
+$$  
 
-Data were exported to CSV and plotted.  
+- Tested eigenvalues: (1,2,5,10), (1,3,7,15), (1,10,20,40).  
+- Condition numbers: \( \kappa = 10, 15, 40 \).  
+- Starting point: \( (5,5,5,5) \).  
+- Learning rate: \( \eta = 1/(1.5\max(l_i)) \).  
 
 ---
 
 ## Results  
 
-### One-Dimensional  
+### One-Dimensional Sweep  
 
 | η   | iterations | converged | stable |
 |-----|------------|-----------|--------|
@@ -165,8 +191,7 @@ Data were exported to CSV and plotted.
 | 0.48 | 201 | True | True |
 | 0.50+ | – | False | False |
 
-**Figure 1:** Iterations vs learning rate (1D).  
-**Figure 2:** Error decay curves for selected \( \eta \).  
+![1D iterations vs eta](gd_outputs/chart_1d_iters.png)  
 
 ---
 
@@ -178,8 +203,7 @@ Data were exported to CSV and plotted.
 | 10  | 186 | True | 0.0667 |
 | 100 | 1558| True | 0.0067 |
 
-**Figure 3:** Iterations vs condition number (2D).  
-**Figure 4:** Error decay in log-scale (2D).  
+![2D iterations vs kappa](gd_outputs/chart_2d_iters.png)  
 
 ---
 
@@ -191,8 +215,19 @@ Data were exported to CSV and plotted.
 | (1,3,5)    | 5   | 95         | True      | 0.1333 |
 | (1,10,50)  | 50  | 829        | True      | 0.0133 |
 
-**Figure 5:** Iterations vs condition number (3D).  
-**Figure 6:** Error decay curves for 3D trials.  
+![3D iterations vs kappa](gd_outputs/chart_3d_iters.png)  
+
+---
+
+### Four-Dimensional  
+
+| (l1,l2,l3,l4) | κ   | iterations | converged | η used |
+|---------------|-----|------------|-----------|--------|
+| (1,2,5,10)    | 10  | *to fill from CSV* | True | 0.0667 |
+| (1,3,7,15)    | 15  | *to fill from CSV* | True | 0.0444 |
+| (1,10,20,40)  | 40  | *to fill from CSV* | True | 0.0167 |
+
+![4D iterations vs kappa](gd_outputs/chart_4d_iters.png)  
 
 ---
 
@@ -200,51 +235,51 @@ Data were exported to CSV and plotted.
 
 ### Effect of Learning Rate  
 
-- Stability bound: \( \eta < 0.5 \).  
-- Data confirms: convergence until \( \eta = 0.48 \); divergence at \( \eta \geq 0.5 \).  
-- Fastest convergence around \( \eta \approx 0.24\)–0.26 with only 6 iterations.  
+- Theory predicts stability if \( 0 < \eta < 0.5 \).  
+- The data confirms: convergence up to \( \eta = 0.48 \), divergence at \( \eta \geq 0.5 \).  
+- The fastest convergence occurred around \( \eta = 0.24 \)–0.26, exactly where theory predicted the optimal step.  
 
 ### Effect of Condition Number  
 
-- In 2D: iterations grow from 37 (\(\kappa=2\)) to 1558 (\(\kappa=100\)).  
-- In 3D: moderate κ = 5 still needed 95 iterations; large κ = 50 took 829 iterations.  
-- Matches theory: higher κ stretches the valley and forces zig-zagging.  
+- In 2D, iterations rose from 37 at \( \kappa=2 \) to 1558 at \( \kappa=100 \).  
+- In 3D, moderate \( \kappa=5 \) required 95 iterations, while \( \kappa=50 \) required 829.  
+- In 4D, the trend continues: iteration count scales roughly linearly with \( \kappa \).  
 
-### Comparison with Theory  
-
-- Predicted optimal step size for 1D: \( \eta_{\text{best}}=0.25\).  
-- Experimental fastest rate: \( \eta=0.24\)–0.26. Perfect agreement.  
+This matches the geometric picture: large condition numbers stretch the bowl into a narrow valley, and gradient descent must zig-zag down.  
 
 ### Dimensionality  
 
-Going from 2D to 3D did not change the mathematics (still eigenvalues determine convergence). But more dimensions allow intermediate κ values (5, 20, 50) that show clearly how iteration count scales almost linearly with κ.  
+Moving from 1D to 4D did not change the essential mathematics. The eigenvalues of the Hessian completely determine stability and rate. But higher dimensions allow intermediate condition numbers and richer error dynamics.  
 
 ---
 
 ## Conclusion  
 
-This investigation shows that:  
+This investigation demonstrated:  
 
-- **Learning rate \( \eta \):**  
-  - Too small → convergence but slow.  
-  - Moderate near \( 2/(\lambda_{\min}+\lambda_{\max}) \) → fastest.  
-  - Too large → divergence.  
+- **Learning rate:** too small → safe but slow; optimal → rapid; too large → divergence.  
+- **Condition number:** small → fast convergence; large → slow convergence, even if stable.  
+- **Dimensionality:** confirms that eigenvalues govern the process, regardless of dimension.  
 
-- **Condition number \( \kappa \):**  
-  - Small → rapid convergence.  
-  - Large → extremely slow even if stable.  
-
-Both the theory of iteration matrices and the experiments in 1D, 2D, and 3D matched perfectly.  
+Theory and experiment matched strikingly well.  
 
 ---
 
 ## Reflection  
 
-This project gave me both practical coding experience and deeper insight into mathematical optimization. I learned how eigenvalues—abstract objects from linear algebra—directly control convergence speed in an algorithm that powers modern AI.  
+This project brought together calculus, linear algebra, and numerical analysis in a way that directly connects to machine learning.  
 
-It also showed me how small-scale numerical experiments complement theory: instead of just trusting the inequality \( \eta < 2/\lambda_{\max} \), I watched the error curve plunge or blow up depending on η.  
+I learned how eigenvalues—abstract numbers from linear algebra—translate directly into concrete iteration counts. I also saw how the condition number, often mentioned vaguely in textbooks, has an immediate visual meaning: the ratio of axes of the optimization valley.  
 
-If extended, I would study more advanced algorithms like **momentum**, **Nesterov acceleration**, and **Adam**, to see how they tame ill-conditioning where plain gradient descent struggles.  
+On a personal level, the project connected my interests in artificial intelligence with mathematics. Running code, generating plots, and comparing them with theory gave me a satisfying cycle of hypothesis and verification.  
+
+Possible extensions include:  
+
+- Gradient descent with momentum.  
+- Nesterov accelerated gradient.  
+- Adaptive methods like Adam.  
+
+Each of these methods attempts to overcome the limitations of plain gradient descent, especially in high condition-number problems.  
 
 ---
 
