@@ -12,7 +12,7 @@ def gd_1d(a, b, c, x0, eta, tol=1e-6, kmax=500):
     xs, fs = [x0], [f(x0)]
     for _ in range(kmax):
         x_new = xs[-1] - eta * grad(xs[-1])
-        if abs(x_new) > 1e6:  # runaway -> divergence
+        if abs(x_new) > 1e6:
             return np.array(xs), np.array(fs), False
         xs.append(x_new)
         fs.append(f(x_new))
@@ -20,11 +20,23 @@ def gd_1d(a, b, c, x0, eta, tol=1e-6, kmax=500):
             return np.array(xs), np.array(fs), True
     return np.array(xs), np.array(fs), False
 
-
 def gd_2d(m, M, x0, eta, tol=1e-6, kmax=2000):
     Q = np.array([[m,0],[0,M]])
     grad = lambda v: Q @ v
     f = lambda v: 0.5*(m*v[0]**2 + M*v[1]**2)
+    xs, fs = [np.array(x0)], [f(x0)]
+    for _ in range(kmax):
+        v_new = xs[-1] - eta*grad(xs[-1])
+        xs.append(v_new)
+        fs.append(f(v_new))
+        if np.linalg.norm(xs[-1]-xs[-2]) < tol:
+            return np.array(xs), np.array(fs), True
+    return np.array(xs), np.array(fs), False
+
+def gd_3d(l1, l2, l3, x0, eta, tol=1e-6, kmax=5000):
+    Q = np.diag([l1,l2,l3])
+    grad = lambda v: Q @ v
+    f = lambda v: 0.5*(l1*v[0]**2 + l2*v[1]**2 + l3*v[2]**2)
     xs, fs = [np.array(x0)], [f(x0)]
     for _ in range(kmax):
         v_new = xs[-1] - eta*grad(xs[-1])
@@ -52,11 +64,29 @@ def exp_2d(m=1.0, kappas=(2,10,100), x0=np.array([5.0,-5.0])):
         recs.append({"kappa":k,"iters":len(xs)-1 if ok else None,"conv":ok,"eta":eta})
     return pd.DataFrame(recs)
 
+def exp_3d(diags=((1,5,20),(1,3,5),(1,10,50)), x0=np.array([5.0,-5.0,5.0])):
+    recs=[]
+    for l1,l2,l3 in diags:
+        L=max(l1,l2,l3)
+        eta=1/(1.5*L)
+        xs,fs,ok=gd_3d(l1,l2,l3,x0,eta)
+        kappa=L/min(l1,l2,l3)
+        recs.append({
+            "l1":l1,"l2":l2,"l3":l3,
+            "kappa":kappa,
+            "iters":len(xs)-1 if ok else None,
+            "conv":ok,
+            "eta":eta
+        })
+    return pd.DataFrame(recs)
+
 df1=exp_1d()
 df2=exp_2d()
+df3=exp_3d()
 
 df1.to_csv(out_dir/"eta_sweep.csv",index=False)
-df2.to_csv(out_dir/"kappa_sweep.csv",index=False)
+df2.to_csv(out_dir/"kappa_sweep_2d.csv",index=False)
+df3.to_csv(out_dir/"kappa_sweep_3d.csv",index=False)
 
 plt.plot(df1[df1.conv]["eta"],df1[df1.conv]["iters"])
 plt.xlabel("eta");plt.ylabel("iterations");plt.title("1D: iterations vs eta")
@@ -86,3 +116,16 @@ for k in [2,10,100]:
     plt.plot(np.arange(len(errs)),np.log10(errs),label=f"kappa={k}")
 plt.xlabel("iteration");plt.ylabel("log10||x-x*||");plt.title("2D error decay")
 plt.legend();plt.savefig(out_dir/"chart_kappa_decay.png");plt.close()
+
+plt.plot(df3[df3.conv]["kappa"],df3[df3.conv]["iters"])
+plt.xlabel("kappa");plt.ylabel("iterations");plt.title("3D: iterations vs kappa")
+plt.savefig(out_dir/"chart_kappa_iters_3d.png");plt.close()
+
+plt.figure()
+for (l1,l2,l3) in [(1,5,20),(1,3,5),(1,10,50)]:
+    L=max(l1,l2,l3); eta=1/(1.5*L)
+    xs,fs,ok=gd_3d(l1,l2,l3,np.array([5.0,-5.0,5.0]),eta)
+    errs=np.linalg.norm(xs,axis=1);errs=np.clip(errs,1e-16,None)
+    plt.plot(np.arange(len(errs)),np.log10(errs),label=f"diag=({l1},{l2},{l3})")
+plt.xlabel("iteration");plt.ylabel("log10||x-x*||");plt.title("3D error decay")
+plt.legend();plt.savefig(out_dir/"chart_kappa_decay_3d.png");plt.close()
