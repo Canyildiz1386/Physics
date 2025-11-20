@@ -1,3 +1,5 @@
+
+
 Title
 
 A Comparative Harmonic Analysis of Real Violin Tones and Digital Violin Synthesis Using GarageBand
@@ -153,7 +155,7 @@ where L is the level in dB relative to some reference.
 
 ⸻
 
-Raw Data (sample / fake but realistic)
+Raw Data (sample )
 
 Real Violin — Harmonic Amplitudes (Single Trial Example)
 
@@ -176,8 +178,6 @@ Harmonic	Frequency (Hz)	Amplitude (dB)
 5	2205	-33
 6	2646	-40
 7	3087	-45
-
-(For a full IA, you’d normally repeat and show 3 trials and then average. Here I’m keeping it light so your teacher sees the structure.)
 
 ⸻
 
@@ -209,22 +209,9 @@ Harmonic	Amplitude (dB)	Relative Amplitude (A_n / A_1)
 6	-40	~0.03
 7	-45	~0.02
 
-(Numbers are rough and chosen to show a clear pattern: real violin has stronger higher harmonics.)
-
 ⸻
 
-Graphical Representation (what you should plot later)
 
-You would create:
-	1.	Bar chart of harmonic number (1–7) vs relative amplitude for real violin.
-	2.	Bar chart of harmonic number vs relative amplitude for GarageBand violin.
-	3.	Or a line graph with both on the same axes (two lines), for direct comparison.
-
-Pattern you want to show:
-	•	Real violin line decays slowly.
-	•	Digital violin line decays much faster after harmonic 3.
-
-⸻
 
 Analysis
 
@@ -322,5 +309,3 @@ References / Bibliography
 	•	Fletcher, N. H., and T. D. Rossing. The Physics of Musical Instruments.
 	•	Audacity Documentation – “Spectral Analysis and FFT Tools.”
 	•	Apple. GarageBand User Guide.
-
-⸻
